@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Solari: Start Web Server (Port 8080)",
+      "type": "shell",
+      "command": "javac --release 17 -encoding UTF-8 -sourcepath src/main/java -d out/main src/main/java/com/solari/similarity/Main.java && java -cp out/main com.solari.similarity.Main --serve --port 8080",
+      "windows": {
+        "command": ".\\run.bat server --port 8080"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Solari: Run CLI Batch Triage",
+      "type": "shell",
+      "command": "javac --release 17 -encoding UTF-8 -sourcepath src/main/java -d out/main src/main/java/com/solari/similarity/Main.java && java -cp out/main com.solari.similarity.Main cli",
+      "windows": {
+        "command": ".\\run.bat cli"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Solari: Run Test Suite",
+      "type": "shell",
+      "command": "bash run.sh test",
+      "windows": {
+        "command": ".\\run.bat test"
+      },
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

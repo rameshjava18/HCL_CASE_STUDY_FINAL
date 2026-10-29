@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Solari: Start Web UI Server (http://localhost:8080)",
+      "request": "launch",
+      "mainClass": "com.solari.similarity.Main",
+      "args": ["--serve", "--port", "8080"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "name": "Solari: Run CLI Batch Triage (NT-1..NT-4)",
+      "request": "launch",
+      "mainClass": "com.solari.similarity.Main",
+      "args": ["cli"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "name": "Solari: Run Automated Test Suite",
+      "request": "launch",
+      "mainClass": "com.solari.similarity.SimilarityAssistantTest",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

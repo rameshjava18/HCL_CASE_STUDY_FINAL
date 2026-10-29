@@ -1,0 +1,8 @@
+target/
+out/
+.idea/
+*.iml
+.DS_Store
+data/runtime_tickets.json
+data/feedback_log.json
+data/.embedding_cache.json

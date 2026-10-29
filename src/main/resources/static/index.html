@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solari Analytics — Support Ticket Similarity Assistant</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --border: #dfe4ef;
+      --text: #162033;
+      --muted: #5a6782;
+      --primary: #1f5eff;
+      --primary-hover: #1749cc;
+      --strong-bg: #e8f8ef;
+      --strong-fg: #0f6b3a;
+      --related-bg: #fff6e5;
+      --related-fg: #945800;
+      --none-bg: #eef2f9;
+      --none-fg: #344463;
+      --caveat-bg: #fff1f0;
+      --caveat-border: #ffa39e;
+      --caveat-fg: #a8071a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #10192d;
+      color: #fff;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    header .sub {
+      font-size: 13px;
+      color: #a9b6d3;
+    }
+    .status-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #e4ecff;
+    }
+    main {
+      max-width: 1280px;
+      margin: 24px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(16, 25, 45, 0.04);
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .preset-btn {
+      text-align: left;
+      background: #f8faff;
+      border: 1px solid #d5e0ff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .preset-btn:hover, .preset-btn.active {
+      background: #eaf0ff;
+      border-color: var(--primary);
+    }
+    .preset-btn strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 2px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 10px 0 4px;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text);
+    }
+    textarea { resize: vertical; min-height: 88px; }
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      gap: 10px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary {
+      background: #eef2f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #e2e8f4; }
+    .banner {
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .banner.STRONG { background: var(--strong-bg); color: var(--strong-fg); border: 1px solid #b7ebce; }
+    .banner.RELATED { background: var(--related-bg); color: var(--related-fg); border: 1px solid #ffe0a3; }
+    .banner.NONE { background: var(--none-bg); color: var(--none-fg); border: 1px solid #cfd8ea; }
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tier-badge.STRONG { background: #0f6b3a; color: #fff; }
+    .tier-badge.RELATED { background: #b86e00; color: #fff; }
+    .tier-badge.WEAK, .tier-badge.NONE { background: #4a5a78; color: #fff; }
+    .match-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .match-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 4px 0 0;
+    }
+    .meta-tags {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .chip {
+      background: #f0f4fc;
+      color: #2c4370;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+    .action-box {
+      background: #f5f9ff;
+      border-left: 4px solid var(--primary);
+      padding: 11px 14px;
+      border-radius: 6px;
+      margin: 12px 0;
+      font-size: 13.5px;
+    }
+    .caveat-box {
+      background: var(--caveat-bg);
+      border: 1px solid var(--caveat-border);
+      color: var(--caveat-fg);
+      padding: 10px 13px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      margin: 10px 0;
+    }
+    .details-text {
+      font-size: 13px;
+      color: #324059;
+      margin: 6px 0;
+    }
+    .feedback-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #eef1f7;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    details {
+      margin-top: 14px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--primary);
+      padding: 6px 0;
+    }
+    .muted-note {
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Solari Analytics — Support Ticket Similarity Assistant</h1>
+      <div class="sub">Agent Triage Sidekick · Calibrated Hybrid BM25F + Char 3-Gram Engine</div>
+    </div>
+    <div class="status-pills">
+      <span class="pill" id="kbCountPill">Loading KB...</span>
+      <span class="pill" id="aiModePill">Mode: Deterministic</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="card">
+        <h2>1. Incoming Support Ticket</h2>
+        <div class="muted-note" style="margin-bottom:8px;">Quick-load example incoming tickets (`NT-1` – `NT-4`):</div>
+        <div class="preset-grid" id="presetContainer"></div>
+
+        <label for="ticketIdInput">Ticket ID</label>
+        <input type="text" id="ticketIdInput" value="NT-1" />
+
+        <label for="subjectInput">Subject</label>
+        <input type="text" id="subjectInput" placeholder="e.g., Chart shows nothing for the revenue tab" />
+
+        <label for="descInput">Customer Description</label>
+        <textarea id="descInput" placeholder="Paste customer's ticket description..."></textarea>
+
+        <div class="controls-row">
+          <label style="margin:0; display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="useAiToggle" />
+            <span>AI Advisor (if API key set)</span>
+          </label>
+          <button class="btn-primary" onclick="runTriage()">Find Similar Tickets</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <details id="resolveAccordion">
+          <summary>+ Resolve &amp; Add Novel Ticket to Knowledge Base</summary>
+          <p class="muted-note">
+            Close the cold-start loop: once an agent resolves a novel issue (like Snowflake `NT-4`),
+            index it here so the next agent immediately sees the verified fix.
+          </p>
+          <label for="resCategory">Category</label>
+          <select id="resCategory">
+            <option value="sync">sync</option>
+            <option value="auth">auth</option>
+            <option value="render">render</option>
+            <option value="billing">billing</option>
+            <option value="export">export</option>
+            <option value="perm">perm</option>
+            <option value="perf">perf</option>
+            <option value="api">api</option>
+          </select>
+
+          <label for="resTags">Tags (comma-separated)</label>
+          <input type="text" id="resTags" placeholder="snowflake, warehouse, sync, ip-allowlist" />
+
+          <label for="resNotes">Verified Resolution Notes</label>
+          <textarea id="resNotes" placeholder="Describe root cause and exact customer resolution steps..."></textarea>
+
+          <div class="controls-row">
+            <span id="resolveStatus" class="muted-note"></span>
+            <button class="btn-secondary" onclick="resolveCurrentTicket()">Save &amp; Index Resolution</button>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="resultsPane">
+      <div class="card">
+        <p class="muted-note">Select an example incoming ticket on the left or enter a new ticket to view similar historical resolutions.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let examples = [];
+
+    async function init() {
+      await refreshHealth();
+      const resp = await fetch('/api/examples');
+      const data = await resp.json();
+      examples = data.examples || [];
+      const container = document.getElementById('presetContainer');
+      container.innerHTML = examples.map((ex, idx) => `
+        <button class="preset-btn" id="preset-${idx}" onclick="selectPreset(${idx})">
+          <strong>${escapeHtml(ex.ticket_id)}</strong>
+          ${escapeHtml(ex.subject.length > 42 ? ex.subject.slice(0, 42) + '...' : ex.subject)}
+        </button>
+      `).join('');
+      if (examples.length > 0) {
+        selectPreset(0);
+      }
+    }
+
+    async function refreshHealth() {
+      const resp = await fetch('/api/health');
+      const h = await resp.json();
+      document.getElementById('kbCountPill').textContent = `${h.indexed_resolved_tickets} Resolved Tickets Indexed`;
+      document.getElementById('aiModePill').textContent = `AI: ${h.ai_provider}`;
+    }
+
+    function selectPreset(idx) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`preset-${idx}`);
+      if (btn) btn.classList.add('active');
+      const ex = examples[idx];
+      document.getElementById('ticketIdInput').value = ex.ticket_id;
+      document.getElementById('subjectInput').value = ex.subject;
+      document.getElementById('descInput').value = ex.description;
+      runTriage();
+    }
+
+    async function runTriage() {
+      const payload = {
+        ticket_id: document.getElementById('ticketIdInput').value,
+        subject: document.getElementById('subjectInput').value,
+        description: document.getElementById('descInput').value,
+        top_n: 3,
+        use_ai: document.getElementById('useAiToggle').checked
+      };
+      const pane = document.getElementById('resultsPane');
+      pane.innerHTML = '<div class="card"><p class="muted-note">Searching historical resolutions...</p></div>';
+      const resp = await fetch('/api/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        pane.innerHTML = `<div class="card"><p style="color:#a8071a;">${escapeHtml(data.error || 'Request failed')}</p></div>`;
+        return;
+      }
+      renderResults(data);
+    }
+
+    function renderResults(data) {
+      const pane = document.getElementById('resultsPane');
+      const unindexedHtml = (data.unindexed_entities && data.unindexed_entities.length)
+        ? `<div style="margin-top:6px; font-size:12px;">Unseen Subject Entities: ${data.unindexed_entities.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join(' ')}</div>`
+        : '';
+
+      const aiHtml = data.ai_advisory_note
+        ? `<div class="card" style="margin-bottom:14px; border-color:#b8d0ff; background:#f7faff;">
+             <strong>AI Triage Synthesis:</strong> ${escapeHtml(data.ai_advisory_note)}
+           </div>`
+        : '';
+
+      const primaryHtml = (data.primary_matches || []).map(m => renderMatchCard(data.query.ticket_id, m)).join('');
+
+      let neighborsHtml = '';
+      if (data.no_strong_match && data.category_neighbors && data.category_neighbors.length) {
+        neighborsHtml = `
+          <div class="card">
+            <details>
+              <summary>View ${data.category_neighbors.length} Low-Confidence Category Playbook(s) (General Troubleshooting Only)</summary>
+              <p class="muted-note">These past tickets share broad integration/category terms but do NOT match the specific entity or issue above.</p>
+              ${data.category_neighbors.map(m => renderMatchCard(data.query.ticket_id, m)).join('')}
+            </details>
+          </div>
+        `;
+      }
+
+      pane.innerHTML = `
+        <div class="banner ${data.overall_tier}">
+          <div>
+            <span class="tier-badge ${data.overall_tier}">${escapeHtml(data.overall_tier_label)}</span>
+            <div style="margin-top:6px; font-weight:500;">${escapeHtml(data.banner_message)}</div>
+            ${unindexedHtml}
+          </div>
+          <div style="font-size:12px; white-space:nowrap;">${data.latency_ms} ms</div>
+        </div>
+        ${aiHtml}
+        ${primaryHtml || `<div class="card" style="margin-bottom:14px;">
+            <strong>Novel / Cold-Start Ticket Detected</strong>
+            <p class="details-text">No past resolved ticket cleared the relevance floor (34%). Escalate or investigate directly, then use <em>Resolve &amp; Add Novel Ticket</em> on the left to capture the fix for future agents.</p>
+          </div>`}
+        ${neighborsHtml}
+      `;
+    }
+
+    function renderMatchCard(incomingId, m) {
+      const pct = (m.score * 100).toFixed(1) + '%';
+      const caveatHtml = m.symptom_caveat
+        ? `<div class="caveat-box"><strong>Symptom Stage Check:</strong> ${escapeHtml(m.symptom_caveat)}</div>`
+        : '';
+      const matchedChips = (m.matched_terms || []).map(t => `<span class="chip">${escapeHtml(t)}</span>`).join(' ');
+      const tagChips = (m.tags || []).map(t => `<span class="chip">#${escapeHtml(t)}</span>`).join(' ');
+
+      return `
+        <div class="match-card">
+          <div class="match-header">
+            <div>
+              <div class="meta-tags">
+                <strong>${escapeHtml(m.ticket_id)}</strong>
+                <span class="chip">${escapeHtml(m.category)}</span>
+                <span class="chip">${escapeHtml(m.resolution_type)}</span>
+                <span>Resolved ${escapeHtml(m.created_at)}</span>
+              </div>
+              <div class="match-title">${escapeHtml(m.subject)}</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="tier-badge ${m.tier}">${pct} · ${escapeHtml(m.tier)}</span>
+            </div>
+          </div>
+
+          ${caveatHtml}
+
+          <div class="action-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <strong>Suggested Agent Action</strong>
+              <button class="btn-secondary" onclick="copyText(${JSON.stringify(m.suggested_action)}, this)">Copy Guidance</button>
+            </div>
+            <div style="margin-top:4px;">${escapeHtml(m.suggested_action)}</div>
+          </div>
+
+          <div class="details-text"><strong>Historical Root Cause:</strong> ${escapeHtml(m.root_cause_summary)}</div>
+          <div class="details-text"><strong>Past Customer Report:</strong> ${escapeHtml(m.description)}</div>
+          <details>
+            <summary>Full Resolution Notes &amp; Matched Signals</summary>
+            <p class="details-text">${escapeHtml(m.resolution_notes)}</p>
+            <div class="meta-tags" style="margin-top:6px;">
+              <span>Matched terms:</span> ${matchedChips}
+            </div>
+            <div class="meta-tags" style="margin-top:6px;">
+              <span>Ticket tags:</span> ${tagChips}
+            </div>
+          </details>
+
+          <div class="feedback-bar">
+            <span>Did this past ticket help resolve <strong>${escapeHtml(incomingId)}</strong>?</span>
+            <div style="display:flex; gap:6px;" id="fb-${escapeHtml(m.ticket_id)}">
+              <button class="btn-secondary" onclick="sendFeedback('${escapeHtml(incomingId)}', '${escapeHtml(m.ticket_id)}', true)">👍 Helpful</button>
+              <button class="btn-secondary" onclick="sendFeedback('${escapeHtml(incomingId)}', '${escapeHtml(m.ticket_id)}', false)">👎 Not Helpful</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function sendFeedback(incomingId, matchedId, helpful) {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          incoming_ticket_id: incomingId,
+          matched_ticket_id: matchedId,
+          helpful: helpful
+        })
+      });
+      const el = document.getElementById(`fb-${matchedId}`);
+      if (el) el.innerHTML = `<span class="muted-note">${helpful ? 'Recorded: Helpful ✓' : 'Recorded: Not Helpful ✓'}</span>`;
+    }
+
+    async function resolveCurrentTicket() {
+      const notes = document.getElementById('resNotes').value.trim();
+      const statusEl = document.getElementById('resolveStatus');
+      if (!notes) {
+        statusEl.textContent = 'Enter resolution notes first.';
+        return;
+      }
+      const tags = document.getElementById('resTags').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const payload = {
+        category: document.getElementById('resCategory').value,
+        subject: document.getElementById('subjectInput').value,
+        description: document.getElementById('descInput').value,
+        resolution_notes: notes,
+        tags: tags
+      };
+      const resp = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        statusEl.textContent = `Indexed as ${data.ticket.ticket_id}!`;
+        document.getElementById('resNotes').value = '';
+        await refreshHealth();
+        await runTriage();
+      } else {
+        statusEl.textContent = data.error || 'Failed to save.';
+      }
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text);
+      const prev = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = prev; }, 1200);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
